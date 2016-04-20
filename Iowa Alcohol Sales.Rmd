@@ -1,0 +1,101 @@
+---
+title: "Iowa Alcohol Sales"
+author: "Stephen Bunn, Ben Adams, Andrew Watts, Ben Crawford"
+date: "April 17, 2016"
+output: html_document
+---
+
+```{r setup}
+REQ_PKGS <- c('request', 'plyr', 'logging')
+API_TOKEN <- '3vXmGoIoynbkKy1QyjaJTUCP8'
+API_BASE <- 'https://data.iowa.gov/resource/spsw-4jax.json'
+for (pkg in REQ_PKGS) {
+  # if ((pkg %in% rownames(installed.packages())) == F) {
+  #   install.packages(pkg, character.only=T)
+  # }
+  if ((pkg %in% rownames(installed.packages())) == T) {
+    suppressMessages(require(pkg, character.only=T))
+  }
+}
+basicConfig()
+```
+
+```{r func_iowa_query}
+#' API query handler for the Iowa Alcohol Purchase dataset
+#' 
+#' @param ... Named query parameters following the SoQL standards
+#' @return A data.frame of the query response parameters
+iowa_query <- function(...) {
+  loginfo(
+    'querying `%s` for %s ...',
+    API_BASE, as.list(match.call(expand.dots=FALSE))[2]
+  )
+  resp <- api(API_BASE) %>% 
+    api_headers('X-App-Token'=get(API_TOKEN)) %>%
+      api_query(...) %>%
+        http()
+  return(ldply(resp, data.frame))
+}
+```
+
+
+### Bourbon Sales
+```{r, bourbon_sales}
+# bourbon_sales <- iowa_query(
+#   '$select'='date,category_name,sale_liters',
+#   '$where'="((date between '2015-10-01T00:00:00.000' and '2016-02-28T00:00:00.000') and (category_name like '%BOURBON%'))",
+#   '$order'='date ASC',
+#   '$limit'=50000,
+#   '$offset'=0
+# )
+#bourbon_sales <- read.csv('bourbon_sales.csv')
+# plot(
+#   as.Date(as.character(bourbon_sales$date)),
+#   as.numeric(as.character(bourbon_sales$sale_liters)),
+#   type='h'
+# )
+#tequila_sales <- read.csv('tequila_sales.csv')
+#split(
+#  df=tequila_sales,
+#  f=tequila_sales$date,
+#)
+#mean(as.numeric(as.character(tequila_sales$sale_liters)))
+
+# plot(
+#   as.Date(as.character(tequila_sales$date)),
+#   as.numeric(as.character(tequila_sales$sale_liters)),
+#   type='b'
+# )
+
+# tequila_sales <- iowa_query(
+#   '$select'='date,category_name,sale_liters',
+#   '$where'="((date between '2015-03-01T00:00:00.000' and '2015-10-31T00:00:00.000') and (category_name like '%TEQUILA%'))",
+#   '$order'='date ASC',
+#   '$limit'=50000,
+#   '$offset'=50000
+# )
+# write.csv(tequila_sales, 'tequila_sales_1.csv')
+
+# date_avgs <- c()
+# recent_date <- NULL
+# tmp_avgs <- c()
+# for (i in 1:length(bourbon_sales$date)) {
+#   date <- as.Date(
+#     as.character(bourbon_sales$date[i]),
+#     "%Y-%m-%dT00:00:00.000"
+#   )
+#   if (is.null(recent_date)) {
+#     tmp_avgs <- c(tmp_avgs, as.numeric(as.character(bourbon_sales$sale_liters)))
+#   } else {
+#     if (recent_date == date) {
+#       tmp_avgs <- c(tmp_avgs, as.numeric(as.character(bourbon_sales$sale_liters)))
+#     } else {
+#       date_avgs <- c(date_avgs, mean(tmp_avgs))
+#       tmp_avgs <- c()
+#       tmp_avgs <- c(tmp_avgs, as.numeric(as.character(bourbon_sales$sale_liters)))
+#     }
+#   }
+#   recent_date <- date
+# }
+# plot(as.Date(as.character(bourbon_sales$date)), date_avgs)
+```
